@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peta Careers - Employer Branding Portal</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins & Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        
+        /* Custom scrollbar handling for date/time inputs */
+        input[type="time"]::-webkit-calendar-picker-indicator,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+            z-index: 10;
+        }
+
+        /* Prevent auto-zoom on inputs in iOS */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-fade-in-down { animation: fadeIn 0.3s ease-out forwards; }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(5%); }
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 selection:bg-[#00D1A0]/30 selection:text-[#00D1A0]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // --- ICONS (Optimized outside) ---
+        const IconWrapper = ({ children, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Instagram = (props) => (
+            <IconWrapper {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></IconWrapper>
+        );
+        const Music = (props) => (
+            <IconWrapper {...props}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></IconWrapper>
+        );
+        const Upload = (props) => (
+            <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></IconWrapper>
+        );
+        const CheckCircle2 = (props) => (
+            <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconWrapper>
+        );
+        const AlertCircle = (props) => (
+            <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconWrapper>
+        );
+        const ChevronRight = (props) => (
+            <IconWrapper {...props}><path d="m9 18 6-6-6-6"/></IconWrapper>
+        );
+        const Building2 = (props) => (
+            <IconWrapper {...props}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></IconWrapper>
+        );
+        const CalendarClock = (props) => (
+            <IconWrapper {...props}><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.25V14"/><path d="M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z"/></IconWrapper>
+        );
+        const FileCheck = (props) => (
+            <IconWrapper {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></IconWrapper>
+        );
+        const ShieldCheck = (props) => (
+            <IconWrapper {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></IconWrapper>
+        );
+        const ArrowRight = (props) => (
+            <IconWrapper {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconWrapper>
+        );
+        const Home = (props) => (
+            <IconWrapper {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></IconWrapper>
+        );
+        const LinkIcon = (props) => (
+            <IconWrapper {...props}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></IconWrapper>
+        );
+        const Clock = (props) => (
+            <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconWrapper>
+        );
+        const Calendar = (props) => (
+            <IconWrapper {...props}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></IconWrapper>
+        );
+        const WhatsApp = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className={props.className}>
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            </svg>
+        );
+
+        // --- SUB-COMPONENTS ---
+        
+        const Header = ({ step, goHome }) => {
+            const [logoError, setLogoError] = useState(false);
+            return (
+                <div className="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={goHome}>
+                            <div className="transform hover:scale-105 transition-transform duration-300">
+                                {logoError ? (
+                                    <div className="bg-gradient-to-br from-[#00D1A0] to-[#6C63FF] p-2.5 rounded-2xl shadow-lg shadow-[#6C63FF]/20">
+                                        <Building2 className="text-white w-6 h-6" />
+                                    </div>
+                                ) : (
+                                    <img 
+                                        src="logo.png" 
+                                        alt="Peta Careers Logo" 
+                                        className="h-10 sm:h-14 w-auto object-contain"
+                                        onError={() => setLogoError(true)}
+                                    />
+                                )}
+                            </div>
+                            <div className="flex flex-col">
+                                <h1 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight leading-tight font-montserrat">Peta Careers</h1>
+                                <p className="text-[9px] sm:text-[10px] font-semibold text-[#6C63FF] uppercase tracking-widest font-poppins leading-tight sm:leading-normal">Talent Acquisition & Employer Branding</p>
+                            </div>
+                        </div>
+                        
+                        <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
+                            <div className="w-2 h-2 rounded-full bg-[#00D1A0] animate-pulse"></div>
+                            Internal Portal v2.1
+                        </div>
+
+                        {step !== 'sop' && (
+                            <button onClick={goHome} className="md:hidden p-2 bg-slate-50 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors">
+                                <Home className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const SOPCard = ({ icon: Icon, title, desc, highlight, theme = "mint" }) => {
+            const themes = {
+                mint: { bg: "bg-[#F0FDFA]", border: "border-[#00D1A0]/20", iconBg: "bg-[#00D1A0]/10", iconColor: "text-[#00D1A0]", highlight: "bg-[#CCFBF1] text-[#0F766E]" },
+                blurple: { bg: "bg-[#F5F3FF]", border: "border-[#6C63FF]/20", iconBg: "bg-[#6C63FF]/10", iconColor: "text-[#6C63FF]", highlight: "bg-[#EDE9FE] text-[#5B21B6]" },
+                blue: { bg: "bg-[#EFF6FF]", border: "border-blue-500/20", iconBg: "bg-blue-500/10", iconColor: "text-blue-500", highlight: "bg-blue-100 text-blue-700" },
+                orange: { bg: "bg-[#FFF7ED]", border: "border-orange-500/20", iconBg: "bg-orange-500/10", iconColor: "text-orange-500", highlight: "bg-orange-100 text-orange-700" },
+                rose: { bg: "bg-[#FFF1F2]", border: "border-rose-500/20", iconBg: "bg-rose-500/10", iconColor: "text-rose-500", highlight: "bg-rose-100 text-rose-700" }
+            };
+            const t = themes[theme] || themes.mint;
+            return (
+                <div className={`p-4 sm:p-6 rounded-[1.5rem] border ${t.bg} ${t.border} shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row items-start gap-4 group`}>
+                    <div className={`p-3 sm:p-3.5 rounded-2xl ${t.iconBg} ${t.iconColor} shadow-inner flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </div>
+                    <div className="flex-1 flex flex-col h-full w-full">
+                        <h3 className="font-bold text-slate-800 text-base mb-1.5 sm:mb-2 font-poppins">{title}</h3>
+                        <p className="text-sm leading-relaxed text-slate-600 font-poppins flex-grow">
+                            {desc}
+                        </p>
+                        {highlight && (
+                            <div className="mt-3 pt-2 border-t border-dashed border-slate-200/60 w-full">
+                                <span className={`inline-block font-bold px-3 py-1.5 rounded-lg text-xs ${t.highlight}`}>
+                                    {highlight}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const SOPView = ({ setStep }) => (
+            <div className="animate-fade-in max-w-5xl mx-auto mt-4 sm:mt-10 p-4 font-poppins pb-24">
+                <div className="text-center mb-8 sm:mb-12 space-y-3 sm:space-y-4">
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00D1A0]/10 text-[#00D1A0] rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-sm">
+                        <ShieldCheck className="w-3 h-3" /> Standar Operasional Prosedur
+                    </span>
+                    <h2 className="text-2xl sm:text-4xl text-slate-800 leading-tight">
+                        <span className="font-medium">Employer Branding</span> <br />
+                        <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#00D1A0] to-[#6C63FF]">Request Portal</span>
+                    </h2>
+                    <p className="text-slate-500 max-w-lg mx-auto text-xs sm:text-sm leading-relaxed px-4">
+                        Hai sobat Peta! Demi menjaga kualitas visual @peopleatpeta, yuk pahami aturan mainnya dulu yaa.
+                    </p>
+                </div>
+                <div className="flex flex-col gap-4 sm:gap-5 mb-12">
+                    <SOPCard theme="mint" icon={Instagram} title="Feeds Instagram" desc="Wajib diajukan minimal 14 hari sebelum tanggal tayang agar bisa dijadwalkan dengan rapi." highlight="H-14 Days" />
+                    <SOPCard theme="blurple" icon={Instagram} title="Story Instagram" desc="Lebih fleksibel, namun tetap butuh waktu minimal 2 hari sebelum tayang." highlight="H-2 Days" />
+                    <SOPCard theme="blue" icon={ShieldCheck} title="Finalisasi Materi" desc="Materi visual (Gambar/Video) wajib berstatus FINAL & APPROVE oleh CCO/Leader. No draft allowed." />
+                    <SOPCard theme="mint" icon={CalendarClock} title="Calendar Lock" desc="Slot penuh? Tim EB berhak melakukan penjadwalan ulang (Reschedule) demi kesehatan algoritma." highlight="Max 2 Feeds/Day" />
+                    <SOPCard theme="blurple" icon={FileCheck} title="Finalisasi Caption" desc="Caption harus FINAL (no typo). Tim EB hanya melakukan pengecekan akhir, bukan pembuatan caption." />
+                </div>
+                <div className="flex justify-center sticky bottom-6 sm:bottom-8 z-40 px-4">
+                    <button onClick={() => setStep('form')} className="w-full sm:w-auto bg-[#1e293b] text-white pl-8 pr-6 py-3.5 sm:py-4 rounded-full font-bold shadow-xl shadow-slate-900/20 hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-4 group backdrop-blur-sm">
+                        <span className="text-sm sm:text-base">Saya Mengerti & Lanjut</span>
+                        <div className="bg-white/20 rounded-full p-1.5 group-hover:translate-x-1 transition-transform">
+                            <ArrowRight className="w-4 h-4" />
+                        </div>
+                    </button>
+                </div>
+            </div>
+        );
+
+        const FormView = ({ formData, handleInputChange, handleFileChange, handleSubmit, isSubmitting, validationWarning, goHome, divisions }) => (
+            <div className="animate-fade-in max-w-3xl mx-auto mt-4 sm:mt-8 mb-24 px-4 font-poppins">
+                <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-white overflow-hidden relative">
+                    <div className="h-1.5 w-full bg-gradient-to-r from-[#00D1A0] via-[#6C63FF] to-[#00D1A0]"></div>
+                    <div className="p-5 sm:p-10">
+                        <div className="flex flex-row justify-between items-center mb-6 sm:mb-8 gap-4">
+                            <div>
+                                <h2 className="text-xl sm:text-3xl font-bold text-slate-800">Form Pengajuan</h2>
+                                <p className="text-xs sm:text-sm text-slate-400 mt-1">Lengkapi data di bawah ini dengan teliti.</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={goHome} className="group flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-[#00D1A0] to-[#6C63FF] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300" title="Home">
+                                    <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </button>
+                            </div>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-7">
+                            <div className="flex flex-col gap-5 sm:gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Nama Requestor <span className="text-red-500">*</span></label>
+                                    <p className="text-[10px] text-slate-400 font-medium italic mb-1">Contoh: Rajendra Brata</p>
+                                    <input required name="name" type="text" className="w-full px-5 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#00D1A0] focus:border-transparent outline-none transition-all font-medium text-slate-700 placeholder-slate-400 shadow-sm" placeholder="Nama Lengkap" value={formData.name} onChange={handleInputChange} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Divisi <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <select required name="division" className={`w-full pl-5 pr-12 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#00D1A0] outline-none appearance-none font-medium cursor-pointer shadow-sm truncate ${formData.division ? 'text-slate-700' : 'text-slate-400'}`} value={formData.division} onChange={handleInputChange}>
+                                            <option value="">Pilih Divisi...</option>
+                                            {divisions.map((div, idx) => (
+                                                <option key={idx} value={div}>{div}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <ChevronRight className="w-5 h-5 rotate-90" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-1.5 rounded-[1.2rem] flex relative shadow-inner">
+                                <button type="button" onClick={() => handleInputChange({ target: { name: 'postType', value: 'story' } })} className={`flex-1 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 z-10 ${formData.postType === 'story' ? 'bg-white text-[#6C63FF] shadow-md scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    <Instagram className="w-4 h-4" /> Story (H-2)
+                                </button>
+                                <button type="button" onClick={() => handleInputChange({ target: { name: 'postType', value: 'feeds' } })} className={`flex-1 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 z-10 ${formData.postType === 'feeds' ? 'bg-white text-[#00D1A0] shadow-md scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    <Instagram className="w-4 h-4" /> Feeds (H-14)
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                                <div className="space-y-2 opacity-60 grayscale">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Tgl Request</label>
+                                    <div className="relative">
+                                        <input type="date" readOnly className="w-full pl-5 pr-12 py-3.5 bg-slate-100 border-transparent rounded-2xl text-slate-500 font-medium cursor-not-allowed shadow-sm appearance-none" value={formData.requestDate} />
+                                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none">
+                                            <Calendar className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Rencana Upload <span className="text-red-500">*</span></label>
+                                    <div className="flex flex-row gap-3">
+                                        <div className="relative w-[65%] sm:w-2/3">
+                                            <input 
+                                                required 
+                                                type="date" 
+                                                name="uploadDate" 
+                                                className={`w-full pl-5 pr-12 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:border-transparent outline-none transition-all font-medium text-slate-700 shadow-sm appearance-none ${validationWarning ? 'focus:ring-red-400 text-red-600 bg-red-50' : 'focus:ring-[#6C63FF]'}`} 
+                                                value={formData.uploadDate} 
+                                                onChange={handleInputChange} 
+                                            />
+                                            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none">
+                                                <Calendar className="w-5 h-5" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="relative w-[35%] sm:w-1/3">
+                                            <input 
+                                                required 
+                                                type="time" 
+                                                name="uploadTime" 
+                                                className={`w-full pl-5 pr-10 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:border-transparent outline-none transition-all font-medium text-slate-700 shadow-sm appearance-none ${validationWarning ? 'focus:ring-red-400 text-red-600 bg-red-50' : 'focus:ring-[#6C63FF]'}`} 
+                                                value={formData.uploadTime} 
+                                                onChange={handleInputChange} 
+                                            />
+                                            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none">
+                                                <Clock className="w-5 h-5" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {validationWarning && (
+                                <div className="bg-red-50 text-red-600 px-5 py-4 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-center gap-3 animate-pulse border border-red-100">
+                                    {validationWarning}
+                                </div>
+                            )}
+                            {formData.postType === 'feeds' && (
+                                <div className="space-y-2 animate-fade-in-down">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Caption (Final Status) <span className="text-red-500">*</span></label>
+                                    <textarea required name="caption" rows="4" className="w-full px-5 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#00D1A0] outline-none resize-none font-medium text-slate-700 placeholder-slate-400 shadow-sm" placeholder="Paste caption yang sudah FINAL (no typo) di sini..." value={formData.caption} onChange={handleInputChange}></textarea>
+                                    <div className="flex items-center gap-1.5 text-[10px] text-[#00D1A0] font-medium ml-1 bg-[#00D1A0]/10 w-fit px-2 py-1 rounded-md">
+                                        <ShieldCheck className="w-3 h-3" />
+                                        Tim EB hanya melakukan final check.
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex flex-col gap-5 sm:gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Tag Username <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-medium normal-case ml-1">Opsional</span></label>
+                                    <p className="text-[10px] text-slate-400 font-medium italic mb-1">Contoh: @rajendra - @brata</p>
+                                    <input name="tagUsername" type="text" className="w-full px-5 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#6C63FF] outline-none font-medium shadow-sm" placeholder="@username" value={formData.tagUsername} onChange={handleInputChange} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Request Musik <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-medium normal-case ml-1">Opsional</span></label>
+                                    <p className="text-[10px] text-slate-400 font-medium italic mb-1">Contoh: Reality Club - Telenovia</p>
+                                    <div className="relative">
+                                        {/* Music Request: Icon LEFT */}
+                                        <input name="musicRequest" type="text" className="w-full pl-11 pr-5 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#6C63FF] outline-none font-medium shadow-sm" placeholder="Judul Lagu" value={formData.musicRequest} onChange={handleInputChange} />
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"><Music className="w-5 h-5" /></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-[2rem] border border-slate-100">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Upload Material (Final)</label>
+                                    <div className="border-2 border-dashed border-slate-200 bg-white rounded-[1.5rem] p-6 text-center hover:bg-slate-50 hover:border-[#00D1A0] transition-all cursor-pointer relative group">
+                                        <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onChange={handleFileChange} accept="image/*,video/*" />
+                                        <div className="bg-slate-50 p-3 rounded-full shadow-md shadow-slate-100 w-14 h-14 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 group-hover:shadow-[#00D1A0]/20 transition-all duration-300">
+                                            <Upload className="h-6 w-6 text-[#00D1A0]" />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-700 truncate px-2">
+                                            {formData.materials ? <span className="text-[#00D1A0]">{formData.materials.name}</span> : "Klik untuk upload file Final"}
+                                        </p>
+                                        <p className="text-[10px] text-slate-400 mt-1 font-medium">JPG, PNG, atau Video (Max 50MB)</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest ml-1 flex flex-col gap-1">
+                                        <div className="flex justify-between w-full">
+                                            <span>Link Google Drive</span>
+                                            <span className="text-[9px] sm:text-[10px] normal-case bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Jika file &gt; 50MB</span>
+                                        </div>
+                                        <div className="normal-case font-medium text-blue-600">
+                                            <a href="https://bit.ly/up-disini-dulu" target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                                bit.ly/up-disini-dulu <ChevronRight className="w-3 h-3" />
+                                            </a>
+                                            <p className="text-[9px] text-slate-400 font-normal italic mt-0.5">
+                                                upload manual dan salin kembali tautan file yang sudah terupload di sini ya
+                                            </p>
+                                        </div>
+                                    </label>
+                                    <div className="relative">
+                                        {/* Link Drive: Icon LEFT */}
+                                        <input name="driveLink" type="url" className="w-full pl-11 pr-5 py-3.5 bg-white border-transparent rounded-2xl focus:ring-2 focus:ring-[#6C63FF] outline-none font-medium shadow-sm text-sm" placeholder="https://drive.google.com/..." value={formData.driveLink} onChange={handleInputChange} />
+                                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"><LinkIcon className="w-5 h-5" /></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-center pt-2 sm:pt-4">
+                                <button type="submit" disabled={isSubmitting || !!validationWarning} className={`w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 text-base sm:text-lg flex items-center justify-center gap-3 ${isSubmitting || !!validationWarning ? 'bg-slate-300 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-[#00D1A0] to-[#6C63FF] shadow-[#6C63FF]/30'}`}>
+                                    {isSubmitting ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                            Mengirim...
+                                        </span>
+                                    ) : (
+                                        <><span>Kirim Request</span><ArrowRight className="w-5 h-5 opacity-80" /></>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- SUCCESS VIEW (Updated Content & Button) ---
+        const SuccessView = ({ formData, goHome }) => (
+            <div className="animate-scale-in max-w-md mx-auto mt-10 sm:mt-20 p-8 sm:p-10 bg-white rounded-[2.5rem] shadow-2xl shadow-[#00D1A0]/20 text-center relative overflow-hidden font-poppins w-[90%] sm:w-full flex flex-col items-center">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#00D1A0] to-[#6C63FF]"></div>
+                <div className="w-24 h-24 bg-[#00D1A0]/10 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
+                    <CheckCircle2 className="w-12 h-12 text-[#00D1A0]" />
+                </div>
+                <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Berhasil!</h2>
+                <p className="text-slate-500 mb-8 leading-relaxed text-sm sm:text-base">
+                    Terima kasih <strong>{formData.name}</strong>. Request untuk tanggal <strong className="text-[#6C63FF]">{formData.uploadDate}</strong> jam <strong className="text-[#6C63FF]">{formData.uploadTime}</strong> sudah diterima.
+                </p>
+                <div className="bg-slate-50 rounded-2xl p-5 mb-8 text-xs text-slate-500 border border-slate-100 w-full flex flex-col items-center justify-center">
+                    {/* BELL ICON REMOVED */}
+                    <p className="font-semibold mb-1 text-slate-600">Reminder:</p>
+                    <p className="text-center mb-4">Mohon konfirmasi form pengajuan ini kepada tim terkait dengan menghubungi kontak berikut:</p>
+                    
+                    {/* WHATSAPP BUTTON ADDED */}
+                    <a 
+                        href="https://wa.link/98uzl7" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-[#25D366] text-white font-bold py-2.5 px-6 rounded-full hover:bg-[#128C7E] transition-colors flex items-center gap-2 shadow-md w-fit"
+                    >
+                        <WhatsApp className="w-5 h-5" />
+                        CONFIRM HERE!
+                    </a>
+                </div>
+                <button onClick={goHome} className="text-[#6C63FF] font-bold hover:bg-[#6C63FF]/5 px-8 py-3.5 rounded-full transition-colors flex items-center justify-center gap-2">
+                    <Home className="w-4 h-4" />
+                    Kembali ke Home
+                </button>
+            </div>
+        );
+
+        // --- MAIN APP COMPONENT ---
+        const PetaCareersRequest = () => {
+            const [step, setStep] = useState('sop'); 
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [validationWarning, setValidationWarning] = useState(null);
+
+            // --- SCROLL TO TOP EFFECT ---
+            // Setiap kali step berubah (misal: sop -> form), scroll akan reset ke atas
+            useEffect(() => {
+                window.scrollTo(0, 0);
+            }, [step]);
+
+            // Helper to get local date in YYYY-MM-DD format
+            const getLocalDate = () => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const [formData, setFormData] = useState({
+                name: '',
+                division: '',
+                postType: 'story', 
+                requestDate: getLocalDate(), // Uses local date
+                uploadDate: '',
+                uploadTime: '', 
+                caption: '', 
+                tagUsername: '',
+                musicRequest: '',
+                driveLink: '',
+                materials: null
+            });
+
+            const divisions = [
+                "CEO - Vice CEO",
+                "Product - Grand Project",
+                "Product - Incubation",
+                "Product - Research",
+                "Operation - Administration",
+                "Operation - Client Relation",
+                "Growth - Community Engagement",
+                "Growth - Business Development",
+                "Human Capital - Talent Acquisition & EB",
+                "Human Capital - Learning & Development",
+                "Human Capital - Culture & Engagement",
+                "Marketing - Growth Marketing",
+                "Marketing - Marketing Strategy",
+                "Creative - Employer Branding",
+                "Creative - Product Creative",
+                "Creative - Corporate Creative"
+            ];
+
+            const validateDates = (uploadDateStr, type) => {
+                if (!uploadDateStr) return;
+                
+                // Construct Dates at midnight to compare purely days
+                const reqParts = formData.requestDate.split('-');
+                const upParts = uploadDateStr.split('-');
+                
+                // Month is 0-indexed in JS Date
+                const reqDate = new Date(reqParts[0], reqParts[1] - 1, reqParts[2]);
+                const upDate = new Date(upParts[0], upParts[1] - 1, upParts[2]);
+                
+                const diffTime = upDate - reqDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                let minDays = 0;
+                if (type === 'feeds') minDays = 14; 
+                if (type === 'story') minDays = 2;  
+
+                if (diffDays < minDays) {
+                    setValidationWarning(`SOP Warning: ${type === 'feeds' ? 'Feeds butuh H-14' : 'Story butuh H-2'}.`);
+                } else {
+                    setValidationWarning(null);
+                }
+            };
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+                
+                if (name === 'uploadDate' || name === 'postType') {
+                    validateDates(name === 'uploadDate' ? value : formData.uploadDate, name === 'postType' ? value : formData.postType);
+                }
+            };
+
+            const handleFileChange = (e) => {
+                setFormData(prev => ({ ...prev, materials: e.target.files[0] }));
+            };
+
+            // Helper to convert file to Base64
+            const fileToBase64 = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                });
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsSubmitting(true);
+
+                // --- URL SCRIPT TERBARU ---
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzT1cRTYR-OPYgM2aIgiyAVq87x_V8r9hh2kvs6TAcMbmvk3CpHDjL-d1PV_H3X13mG/exec"; 
+
+                // Jika user belum memasukkan URL, pakai mode simulasi
+                if (SCRIPT_URL === "TEMPEL_URL_WEB_APP_DISINI") {
+                    setTimeout(() => {
+                        console.log("Mode Simulasi: Data Terkirim", formData);
+                        setIsSubmitting(false);
+                        setStep('success');
+                    }, 1500);
+                    return;
+                }
+
+                try {
+                    let payload = { ...formData };
+
+                    // Handle File Upload to Base64
+                    if (formData.materials) {
+                        const base64File = await fileToBase64(formData.materials);
+                        payload.fileData = base64File;
+                        payload.fileName = formData.materials.name;
+                        payload.mimeType = formData.materials.type;
+                        // Hapus objek file asli agar tidak dikirim mentah (optional, tapi lebih bersih)
+                        delete payload.materials; 
+                    }
+
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    console.log("Data Terkirim ke Sheets!");
+                    setIsSubmitting(false);
+                    setStep('success');
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Gagal mengirim data. Cek koneksi internet.");
+                    setIsSubmitting(false);
+                }
+            };
+
+            // Standard navigation back to SOP (no reset)
+            const goHome = () => {
+                setStep('sop');
+                setValidationWarning(null);
+            };
+
+            // Reset form specifically for the success page button
+            const resetAndGoHome = () => {
+                setFormData({
+                    name: '',
+                    division: '',
+                    postType: 'story', 
+                    requestDate: getLocalDate(), 
+                    uploadDate: '',
+                    uploadTime: '', 
+                    caption: '', 
+                    tagUsername: '',
+                    musicRequest: '',
+                    driveLink: '',
+                    materials: null
+                });
+                goHome();
+            };
+
+            return (
+                <div className="min-h-screen">
+                    <Header step={step} goHome={goHome} />
+                    <div className="pb-20">
+                        {step === 'sop' && <SOPView setStep={setStep} />}
+                        {step === 'form' && <FormView 
+                            formData={formData}
+                            handleInputChange={handleInputChange}
+                            handleFileChange={handleFileChange}
+                            handleSubmit={handleSubmit}
+                            isSubmitting={isSubmitting}
+                            validationWarning={validationWarning}
+                            goHome={goHome}
+                            divisions={divisions}
+                        />}
+                        {step === 'success' && <SuccessView formData={formData} goHome={resetAndGoHome} />}
+                    </div>
+                    <div className="fixed bottom-6 left-0 w-full text-center pointer-events-none z-0 hidden sm:block">
+                        <p className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase opacity-50">
+                            Peta Careers © 2025
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PetaCareersRequest />);
+    </script>
+</body>
+</html>
